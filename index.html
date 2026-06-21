@@ -259,8 +259,8 @@
       </div>
       <div class="dial-zone">
         <div class="dial-num" id="scoreNum">7</div>
-        <div class="dial-label">Puntuación del día (1-10) <span id="dialEmoji"></span></div>
-        <input type="range" min="1" max="10" value="7" id="scoreSlider" title="Desliza para puntuar el día">
+        <div class="dial-label">Puntuación del día (0-10) <span id="dialEmoji"></span></div>
+        <input type="range" min="0" max="10" value="7" id="scoreSlider" title="Desliza para puntuar el día">
         <div class="score-bar-track"><div class="score-bar-fill" id="scoreBarFill"></div></div>
       </div>
     </div>
@@ -312,6 +312,9 @@
       <textarea id="journalText" placeholder="¿Qué ha pasado hoy? ¿Cómo te has sentido y por qué?"></textarea>
       <button class="save-btn" id="saveBtn" title="Guardar todo lo de este día">Guardar registro</button>
       <div class="save-msg" id="saveMsg"></div>
+      <div style="text-align:center; margin-top:12px;">
+        <button id="deleteBtn" style="background:none; border:none; color:var(--muted); font-size:11.5px; text-decoration:underline; cursor:pointer; padding:6px;" title="Borrar el registro de este día">Borrar registro de este día</button>
+      </div>
     </div>
 
     <div class="bottom-nav">
@@ -443,10 +446,18 @@ function todayStr(){ return new Date().toISOString().slice(0,10); }
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
 /* ---------- color logic ---------- */
+function hexToRgb(hex){ const v=parseInt(hex.replace('#',''),16); return {r:(v>>16)&255,g:(v>>8)&255,b:v&255}; }
+function lerpColor(a,b,t){
+  const pa=hexToRgb(a), pb=hexToRgb(b);
+  const r=Math.round(pa.r+(pb.r-pa.r)*t), g=Math.round(pa.g+(pb.g-pa.g)*t), bl=Math.round(pa.b+(pb.b-pa.b)*t);
+  return `rgb(${r},${g},${bl})`;
+}
 function ragColor(v){
-  if(v<=3) return getComputedStyle(document.documentElement).getPropertyValue('--red').trim() || '#ef5350';
-  if(v<=6) return getComputedStyle(document.documentElement).getPropertyValue('--amber').trim() || '#f5a623';
-  return getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#2ecc71';
+  const RED='#d62828', AMBER='#f5a623', GREEN='#6fcf45';
+  const clamped = Math.max(0, Math.min(10, v));
+  if(clamped<=3) return lerpColor(RED, RED, clamped/3);
+  if(clamped<=7) return lerpColor(RED, AMBER, (clamped-3)/4);
+  return lerpColor(AMBER, GREEN, (clamped-7)/3);
 }
 function ragColorFor(v, feelingName){
   const inverted = feelingName && !POSITIVE_FEELINGS.includes(feelingName);
@@ -673,6 +684,18 @@ function loadFormForDate(ds){
   renderWaypoints();
 }
 
+async function deleteEntry(){
+  if(!allEntries[selectedDate]){ alert('No hay ningún registro guardado ese día.'); return; }
+  const label = new Date(selectedDate+'T00:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+  if(!confirm(`¿Borrar el registro del ${label}? Esto no se puede deshacer.`)) return;
+  localStorage.removeItem('entry:'+selectedDate);
+  delete allEntries[selectedDate];
+  loadFormForDate(selectedDate);
+  updateDialAvg();
+  document.getElementById('saveMsg').textContent = '✓ Registro borrado';
+  setTimeout(()=>{ document.getElementById('saveMsg').textContent=''; }, 2200);
+}
+
 async function saveEntry(){
   const score = parseInt(document.getElementById('scoreSlider').value);
   const text = document.getElementById('journalText').value.trim();
@@ -801,14 +824,14 @@ function renderWeekdayChart(dates){
   });
 }
 function renderDistChart(dates){
-  const dist = new Array(10).fill(0);
-  dates.forEach(d=>{ dist[allEntries[d].score-1]++; });
+  const dist = new Array(11).fill(0);
+  dates.forEach(d=>{ dist[allEntries[d].score]++; });
   const ctx = document.getElementById('distChart');
   if(window._distChartInst) window._distChartInst.destroy();
   window._distChartInst = new Chart(ctx, {
     type:'bar',
-    data:{ labels:['1','2','3','4','5','6','7','8','9','10'],
-      datasets:[{ data:dist, backgroundColor:[1,2,3,4,5,6,7,8,9,10].map(v=>ragColor(v)), borderRadius:6 }]},
+    data:{ labels:['0','1','2','3','4','5','6','7','8','9','10'],
+      datasets:[{ data:dist, backgroundColor:[0,1,2,3,4,5,6,7,8,9,10].map(v=>ragColor(v)), borderRadius:6 }]},
     options:{ plugins:{legend:{display:false}},
       scales:{ y:{beginAtZero:true, ticks:{color:'#8d8fa0', precision:0}, grid:{color:'rgba(255,255,255,0.06)'}}, x:{grid:{display:false}, ticks:{color:'#8d8fa0'}} } }
   });
@@ -923,6 +946,7 @@ async function init(){
   document.getElementById('datePicker').max = todayStr();
   document.getElementById('scoreSlider').addEventListener('input', updateDial);
   document.getElementById('saveBtn').addEventListener('click', saveEntry);
+  document.getElementById('deleteBtn').addEventListener('click', deleteEntry);
   document.getElementById('goStatsBtn').addEventListener('click', ()=>showView('stats'));
   document.getElementById('goDataBtn').addEventListener('click', ()=>showView('data'));
   document.getElementById('backFromStats').addEventListener('click', ()=>showView('home'));
