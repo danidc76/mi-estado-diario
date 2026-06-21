@@ -13,171 +13,222 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&family=Inter:wght@600;700;800;900&display=swap');
 
   :root{
-    --bg-0:#15121e;
-    --card:#241f38;
-    --coral:#ff8a5c;
-    --teal:#4fd1ae;
-    --gold:#f5c451;
-    --cold:#5b8def;
-    --ink:#f3eef9;
-    --muted:#9b93b5;
+    --bg:#10111a;
+    --card:#1a1c28;
+    --card2:#20222f;
+    --line:rgba(255,255,255,0.07);
+    --ink:#f2f2f5;
+    --muted:#8d8fa0;
+    --accent:#22c3a6;
+    --accent-soft:rgba(34,195,166,0.15);
+    --red:#ef5350;
+    --amber:#f5a623;
+    --green:#2ecc71;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:
-      radial-gradient(circle at 10% 0%, rgba(255,138,92,0.10), transparent 40%),
-      radial-gradient(circle at 90% 100%, rgba(79,209,174,0.10), transparent 40%),
-      var(--bg-0);
+    background:var(--bg);
     color:var(--ink);
-    font-family:'IBM Plex Sans', sans-serif;
+    font-family:'Raleway', sans-serif;
     min-height:100vh;
-    padding:18px 14px 90px;
+    padding:max(16px, env(safe-area-inset-top)) 14px 90px;
+    padding-left:max(14px, env(safe-area-inset-left));
+    padding-right:max(14px, env(safe-area-inset-right));
   }
   .wrap{ max-width:640px; margin:0 auto; }
   .view{ display:none; }
   .view.active{ display:block; }
 
-  .top{ text-align:center; margin-bottom:18px; position:relative; }
-  .top .eyebrow{ font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--coral); font-weight:600; }
-  .top h1{ font-family:'Bricolage Grotesque'; font-weight:800; font-size:26px; margin:6px 0 2px; letter-spacing:-0.5px;}
+  .top{ text-align:center; margin-bottom:16px; margin-top:6px; position:relative; }
+  .top .title-row{ display:flex; align-items:baseline; justify-content:center; gap:6px;}
+  .top h1{ font-family:'Montserrat'; font-weight:800; font-size:23px; margin:4px 0 2px; letter-spacing:-0.3px;}
+  .top .version{ font-size:10.5px; color:var(--muted); font-weight:600; }
+  .top .eyebrow{ font-family:'Inter'; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:var(--accent); font-weight:800; }
   .back-btn{
-    position:absolute; left:0; top:2px; background:none; border:none; color:var(--ink);
-    font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px;
+    position:relative; display:block; margin:0 auto 10px 0; background:var(--card2); border:1px solid var(--line);
+    color:var(--ink); font-size:13.5px; font-weight:700; cursor:pointer; padding:8px 14px;
+    border-radius:30px; width:fit-content;
   }
 
   .card{
-    background:linear-gradient(160deg, var(--card), rgba(36,31,56,0.6));
-    border:1px solid rgba(255,255,255,0.06);
-    border-radius:20px; padding:20px; margin-bottom:14px;
-    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px; padding:18px; margin-bottom:13px;
   }
   .card h2{
-    font-family:'Bricolage Grotesque'; font-size:14px; font-weight:700;
-    margin:0 0 12px; display:flex; align-items:center; gap:8px;
+    font-family:'Montserrat'; font-size:13.5px; font-weight:700;
+    margin:0 0 12px; display:flex; align-items:center; gap:7px; color:var(--ink);
   }
 
   /* date row */
-  .date-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;}
-  .date-row .editing-label{ font-size:13px; color:var(--muted); }
-  .date-row input[type=date]{
-    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
-    color:var(--ink); border-radius:10px; padding:7px 10px; font-family:'IBM Plex Sans';
+  .date-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+  input[type=date]{
+    background:var(--card2); border:1px solid var(--line);
+    color:var(--ink); border-radius:10px; padding:7px 10px; font-family:'Raleway';
     font-size:13px; color-scheme:dark;
   }
   .today-pill{
-    font-size:11px; background:rgba(79,209,174,0.15); color:var(--teal);
-    padding:3px 9px; border-radius:20px; border:1px solid rgba(79,209,174,0.3);
-    cursor:pointer; white-space:nowrap;
+    font-size:11px; background:var(--accent-soft); color:var(--accent);
+    padding:4px 10px; border-radius:20px; border:1px solid rgba(34,195,166,0.3);
+    cursor:pointer; white-space:nowrap; font-weight:600;
   }
 
-  /* Dial */
-  .dial-zone{ display:flex; flex-direction:column; align-items:center; gap:10px; }
-  .dial-top{ display:flex; align-items:baseline; gap:10px; }
-  .dial-num{
-    font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:700;
-    font-size:78px; line-height:1; transition:color 0.25s; letter-spacing:-2px;
+  /* Score card */
+  .score-card{ position:relative; padding-top:16px; }
+  .avg-badge{
+    position:absolute; top:14px; right:14px; background:var(--card2);
+    border:1px solid var(--line); border-radius:14px; padding:8px 14px; text-align:center;
   }
-  .dial-avg{ font-size:13px; color:var(--muted); font-weight:500; }
-  .dial-avg b{ color:var(--ink); }
+  .avg-badge .av-num{ font-family:'Inter'; font-weight:900; font-size:22px; line-height:1;}
+  .avg-badge .av-lbl{ font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700;}
+  .dial-zone{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+  .dial-num{
+    font-family:'Inter'; font-weight:900;
+    font-size:72px; line-height:1; letter-spacing:-2px;
+  }
   .dial-label{ font-size:12px; color:var(--muted); margin-top:-6px; }
+  .score-bar-track{ width:100%; height:10px; border-radius:6px; background:rgba(255,255,255,0.07); margin-top:4px; overflow:hidden;}
+  .score-bar-fill{ height:100%; border-radius:6px; transition:width .2s, background .2s; }
   input[type=range]{
     width:100%; height:8px; border-radius:6px; outline:none;
-    -webkit-appearance:none; background:rgba(255,255,255,0.08); margin-top:4px;
+    -webkit-appearance:none; margin-top:10px;
   }
   input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none; width:28px; height:28px; border-radius:50%;
-    background:var(--coral); cursor:pointer; border:4px solid var(--bg-0);
-    box-shadow:0 0 0 4px rgba(255,138,92,0.25);
+    -webkit-appearance:none; width:26px; height:26px; border-radius:50%;
+    background:#fff; cursor:pointer; border:4px solid var(--bg);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.2);
   }
+
+  /* feelings */
+  .feeling-row{ margin-bottom:14px; }
+  .feeling-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .feeling-name{ font-size:13px; font-weight:600; }
+  .feeling-val{ font-family:'Inter'; font-weight:800; font-size:14px; }
+  .feeling-bar-track{ width:100%; height:7px; border-radius:5px; background:rgba(255,255,255,0.07); overflow:hidden; margin-bottom:6px;}
+  .feeling-bar-fill{ height:100%; border-radius:5px; transition:width .2s, background .2s;}
+  .feeling-row input[type=range]{ margin-top:0; height:5px; }
+  .feeling-row input[type=range]::-webkit-slider-thumb{ width:20px; height:20px; }
 
   .chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
   .chip{
     font-size:13px; padding:8px 13px; border-radius:30px;
-    border:1px solid rgba(255,255,255,0.14); color:var(--muted);
-    background:rgba(255,255,255,0.03); cursor:pointer; user-select:none;
-    transition:all .15s; font-weight:500;
+    border:1px solid var(--line); color:var(--muted);
+    background:var(--card2); cursor:pointer; user-select:none;
+    transition:all .15s; font-weight:600;
   }
-  .chip.active{ background:linear-gradient(135deg, var(--coral), #ffb088); color:#231209; border-color:transparent; font-weight:600;}
-  .chip.add{ border-style:dashed; font-size:16px; padding:8px 16px; font-weight:700; }
+  .chip.active{ background:var(--accent); color:#06231c; border-color:transparent;}
 
   textarea{
-    width:100%; min-height:110px; resize:vertical;
-    background:rgba(0,0,0,0.18); border:1px solid rgba(255,255,255,0.1);
+    width:100%; min-height:100px; resize:vertical;
+    background:var(--card2); border:1px solid var(--line);
     border-radius:12px; padding:12px 14px; color:var(--ink);
-    font-family:'IBM Plex Sans'; font-size:14px; line-height:1.5; outline:none;
+    font-family:'Raleway'; font-size:14px; line-height:1.5; outline:none;
   }
   textarea::placeholder{ color:var(--muted); }
 
   .save-btn{
     width:100%; margin-top:14px; padding:14px; border:none; border-radius:14px;
-    background:linear-gradient(135deg, var(--teal), #6fe3c4); color:#0c2620;
-    font-family:'Bricolage Grotesque'; font-weight:700; font-size:15px;
-    cursor:pointer; transition:transform .12s;
+    background:var(--accent); color:#06231c;
+    font-family:'Montserrat'; font-weight:700; font-size:14.5px;
+    cursor:pointer;
   }
   .save-btn:active{ transform:scale(0.98); }
-  .save-msg{ text-align:center; font-size:12px; color:var(--teal); margin-top:8px; height:14px; }
+  .save-btn.secondary{ background:var(--card2); color:var(--ink); border:1px solid var(--line); }
+  .save-msg{ text-align:center; font-size:12px; color:var(--accent); margin-top:8px; height:14px; }
 
-  /* bottom nav */
-  .bottom-nav{
-    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;
-  }
+  .bottom-nav{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;}
   .nav-btn{
-    padding:16px 10px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);
-    background:var(--card); color:var(--ink); font-family:'Bricolage Grotesque';
-    font-weight:700; font-size:14px; cursor:pointer; display:flex; flex-direction:column;
+    padding:15px 10px; border-radius:16px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink); font-family:'Montserrat';
+    font-weight:700; font-size:13.5px; cursor:pointer; display:flex; flex-direction:column;
     align-items:center; gap:6px;
   }
-  .nav-btn .ic{ font-size:22px; }
+  .nav-btn .ic{ font-size:20px; }
 
-  /* stat tabs */
-  .tab-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:4px; -webkit-overflow-scrolling:touch;}
+  /* stat boxes */
+  .stat-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px;}
+  .stat-box{ background:var(--card); border-radius:16px; padding:14px; border:1px solid var(--line);}
+  .stat-box .v{ font-family:'Inter'; font-weight:900; font-size:26px;}
+  .stat-box .l{ font-size:10.5px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
+  .stat-box .sub{ font-size:11px; color:var(--muted); margin-top:2px;}
+
+  /* tabs */
+  .tab-row{ display:flex; gap:8px; overflow-x:auto; padding:2px 2px 10px 2px; margin-bottom:4px; -webkit-overflow-scrolling:touch;}
   .tab-row::-webkit-scrollbar{ display:none; }
   .tab-btn{
-    flex:0 0 auto; padding:9px 14px; border-radius:30px; border:1px solid rgba(255,255,255,0.12);
-    background:rgba(255,255,255,0.03); color:var(--muted); font-size:12.5px; font-weight:600;
+    flex:0 0 auto; padding:9px 14px; border-radius:30px; border:1px solid var(--line);
+    background:var(--card2); color:var(--muted); font-size:12.5px; font-weight:700;
     cursor:pointer; white-space:nowrap;
   }
-  .tab-btn.active{ background:linear-gradient(135deg, var(--coral), #ffb088); color:#231209; border-color:transparent;}
-
-  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;}
-  .stat-box{ background:var(--card); border-radius:16px; padding:14px 8px; text-align:center; border:1px solid rgba(255,255,255,0.06);}
-  .stat-box .v{ font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px;}
-  .stat-box .l{ font-size:10px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px;}
+  .tab-btn.active{ background:var(--accent); color:#06231c; border-color:transparent;}
 
   .panel{ display:none; }
   .panel.active{ display:block; }
   canvas{ max-height:220px; }
 
-  .heatmap{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
-  .hcell{ aspect-ratio:1; border-radius:6px; background:rgba(255,255,255,0.05); }
-  .heatlabels{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:2px;}
-  .heatlabels span{ font-size:9px; color:var(--muted); text-align:center; }
+  /* calendar */
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cal-head button{ background:var(--card2); border:1px solid var(--line); color:var(--ink); border-radius:10px; padding:6px 12px; cursor:pointer; font-weight:700;}
+  .cal-head .cal-title{ font-family:'Montserrat'; font-weight:700; font-size:14px; text-transform:capitalize;}
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal-wd{ font-size:9.5px; color:var(--muted); text-align:center; font-weight:700; padding-bottom:4px;}
+  .cal-cell{
+    position:relative; aspect-ratio:1; border-radius:10px; background:rgba(255,255,255,0.04);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .cal-cell.empty{ background:transparent; cursor:default; }
+  .cal-cell .score-badge{
+    position:absolute; bottom:2px; right:2px; font-size:8px; font-weight:800;
+    background:rgba(0,0,0,0.35); border-radius:5px; padding:1px 3px;
+  }
+  .cal-cell.future{ opacity:0.25; cursor:default; }
 
   .history{ display:flex; flex-direction:column; gap:10px; }
-  .h-item{ background:rgba(255,255,255,0.03); border-radius:12px; padding:12px 14px; border:1px solid rgba(255,255,255,0.05); cursor:pointer;}
+  .h-item{ background:var(--card2); border-radius:12px; padding:12px 14px; border:1px solid var(--line); cursor:pointer;}
   .h-top{ display:flex; justify-content:space-between; align-items:center; }
   .h-date{ font-size:12px; color:var(--muted); }
-  .h-score{ font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px; }
-  .h-moods{ margin-top:6px; font-size:12px; color:var(--muted); }
-  .h-text{ margin-top:6px; font-size:13px; color:var(--ink); opacity:0.85; }
+  .h-score{ font-family:'Raleway'; font-weight:800; font-size:16px; }
+  .h-sub{ margin-top:6px; font-size:12px; color:var(--muted); }
+  .h-text{ margin-top:6px; font-size:13px; color:var(--ink); opacity:0.9; }
   .empty{ text-align:center; color:var(--muted); font-size:13px; padding:20px; }
 
   .backup-row{ display:flex; gap:10px; }
   input[type=file]{ display:none; }
 
-  .waypoint-list{ display:flex; flex-direction:column; gap:8px; }
-  .wp-item{
-    display:flex; align-items:flex-start; gap:10px; background:rgba(255,255,255,0.03);
-    border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:10px 12px;
+  /* waypoints */
+  .wp-collapse-btn{
+    width:100%; text-align:left; background:var(--card2); border:1px solid var(--line);
+    border-radius:12px; padding:10px 12px; color:var(--ink); font-size:13px; font-weight:600;
+    cursor:pointer; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;
   }
-  .wp-time{ font-family:'Bricolage Grotesque'; font-weight:700; font-size:12px; color:var(--gold); white-space:nowrap; padding-top:1px;}
+  .waypoint-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+  .wp-item{
+    display:flex; align-items:flex-start; gap:10px; background:var(--card2);
+    border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+  }
+  .wp-dot{ width:11px; height:11px; border-radius:50%; margin-top:4px; flex:0 0 auto;}
+  .wp-time{ font-family:'Raleway'; font-weight:800; font-size:12px; color:var(--accent); white-space:nowrap; padding-top:1px;}
   .wp-text{ font-size:13px; flex:1; line-height:1.4; }
-  .wp-del{ background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:0 2px;}
+  .wp-del{ background:none; border:none; color:var(--muted); font-size:15px; cursor:pointer; padding:0 2px;}
   .wp-empty{ font-size:12px; color:var(--muted); padding:6px 2px; }
+  .wp-add-form{ display:none; flex-direction:column; gap:8px; }
+  .wp-add-form.active{ display:flex; }
+  .wp-add-form input[type=text], .wp-add-form input[type=time]{
+    background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+    color:var(--ink); font-family:'Raleway'; font-size:13px; outline:none; color-scheme:dark;
+  }
+  .wp-rating-row{ display:flex; gap:8px; }
+  .wp-rating-btn{
+    flex:1; padding:9px; border-radius:10px; border:2px solid transparent; background:var(--card2);
+    cursor:pointer; font-size:12px; font-weight:700; color:var(--muted); text-align:center;
+  }
+  .wp-rating-btn.sel-bueno{ border-color:var(--green); color:var(--green); }
+  .wp-rating-btn.sel-regular{ border-color:var(--amber); color:var(--amber); }
+  .wp-rating-btn.sel-malo{ border-color:var(--red); color:var(--red); }
 </style>
 </head>
 <body>
@@ -187,27 +238,32 @@
   <div class="view active" id="view-home">
     <div class="top">
       <div class="eyebrow">Tu registro privado</div>
-      <h1>Mi Estado Diario</h1>
+      <div class="title-row"><h1>Mi Estado Diario</h1><span class="version">v1.1</span></div>
     </div>
 
     <div class="card">
       <div class="date-row">
-        <input type="date" id="datePicker">
-        <span class="today-pill" id="goTodayBtn">Hoy</span>
+        <input type="date" id="datePicker" title="Elegir otro día para ver o editar">
+        <span class="today-pill" id="goTodayBtn" title="Volver al día de hoy">Hoy</span>
+      </div>
+    </div>
+
+    <div class="card score-card">
+      <div class="avg-badge" title="Media de todas tus puntuaciones diarias guardadas">
+        <div class="av-num" id="dialAvg">–</div>
+        <div class="av-lbl">Media</div>
       </div>
       <div class="dial-zone">
-        <div class="dial-top">
-          <div class="dial-num" id="scoreNum">7</div>
-          <div class="dial-avg">media <b id="dialAvg">–</b></div>
-        </div>
-        <div class="dial-label">de 1 a 10 <span id="dialEmoji"></span></div>
-        <input type="range" min="1" max="10" value="7" id="scoreSlider">
+        <div class="dial-num" id="scoreNum">7</div>
+        <div class="dial-label">Puntuación del día (1-10) <span id="dialEmoji"></span></div>
+        <input type="range" min="1" max="10" value="7" id="scoreSlider" title="Desliza para puntuar el día">
+        <div class="score-bar-track"><div class="score-bar-fill" id="scoreBarFill"></div></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Estado de ánimo</h2>
-      <div class="chip-row" id="moodChips"></div>
+      <h2>Sentimientos del día</h2>
+      <div id="feelingsList"></div>
     </div>
 
     <div class="card">
@@ -217,20 +273,36 @@
 
     <div class="card">
       <h2>Momentos del día</h2>
-      <div id="waypointList" class="waypoint-list"></div>
-      <button class="save-btn" id="addWaypointBtn" style="background:linear-gradient(135deg, var(--gold), #ffd98a); color:#332405; margin-top:10px;">+ Añadir momento</button>
+      <button class="wp-collapse-btn" id="wpToggleBtn" title="Mostrar u ocultar los momentos registrados">
+        <span id="wpToggleLabel">Momentos registrados (0)</span><span id="wpToggleArrow">▾</span>
+      </button>
+      <div id="waypointList" class="waypoint-list" style="display:none;"></div>
+
+      <div class="wp-add-form" id="wpAddForm">
+        <div style="display:flex; gap:8px;">
+          <input type="time" id="wpTimeInput" style="flex:0 0 110px;" title="Hora del momento (se rellena con la hora actual, pero puedes cambiarla)">
+          <input type="text" id="wpTextInput" placeholder="¿Qué ha pasado?" style="flex:1;">
+        </div>
+        <div class="wp-rating-row">
+          <button class="wp-rating-btn" data-rating="bueno" title="Momento bueno">🟢 Bueno</button>
+          <button class="wp-rating-btn" data-rating="regular" title="Momento regular">🟠 Regular</button>
+          <button class="wp-rating-btn" data-rating="malo" title="Momento malo">🔴 Malo</button>
+        </div>
+        <button class="save-btn secondary" id="wpConfirmBtn">Guardar momento</button>
+      </div>
+      <button class="save-btn secondary" id="addWaypointBtn" title="Apuntar algo que ha pasado a esta hora">+ Añadir momento</button>
     </div>
 
     <div class="card">
-      <h2>Cuéntame el día</h2>
+      <h2>Resumen del día</h2>
       <textarea id="journalText" placeholder="¿Qué ha pasado hoy? ¿Cómo te has sentido y por qué?"></textarea>
-      <button class="save-btn" id="saveBtn">Guardar registro</button>
+      <button class="save-btn" id="saveBtn" title="Guardar todo lo de este día">Guardar registro</button>
       <div class="save-msg" id="saveMsg"></div>
     </div>
 
     <div class="bottom-nav">
-      <button class="nav-btn" id="goStatsBtn"><span class="ic">📊</span>Estadísticas</button>
-      <button class="nav-btn" id="goDataBtn"><span class="ic">💾</span>Copia de seguridad</button>
+      <button class="nav-btn" id="goStatsBtn" title="Ver gráficas y estadísticas"><span class="ic">📊</span>Estadísticas</button>
+      <button class="nav-btn" id="goDataBtn" title="Exportar o importar tus datos"><span class="ic">💾</span>Copia de seguridad</button>
     </div>
   </div>
 
@@ -238,33 +310,42 @@
   <div class="view" id="view-stats">
     <div class="top">
       <button class="back-btn" id="backFromStats">‹ Inicio</button>
-      <h1>Estadísticas</h1>
+      <h1 style="text-align:left; margin-top:0;">Estadísticas</h1>
     </div>
 
     <div class="stat-grid">
-      <div class="stat-box"><div class="v" id="statAvg">–</div><div class="l">Media</div></div>
-      <div class="stat-box"><div class="v" id="statStreak">–</div><div class="l">Racha actual</div></div>
-      <div class="stat-box"><div class="v" id="statBestStreak">–</div><div class="l">Mejor racha</div></div>
-      <div class="stat-box"><div class="v" id="statTotal">–</div><div class="l">Registros</div></div>
+      <div class="stat-box" title="Media de todas tus puntuaciones diarias">
+        <div class="v" id="statAvg">–</div><div class="l">Media general</div>
+      </div>
+      <div class="stat-box" title="Número total de días registrados">
+        <div class="v" id="statTotal">–</div><div class="l">Registros</div>
+      </div>
+      <div class="stat-box" title="El día con la puntuación más alta">
+        <div class="v" id="statBest">–</div><div class="l">Mejor día</div><div class="sub" id="statBestDate"></div>
+      </div>
+      <div class="stat-box" title="El día con la puntuación más baja">
+        <div class="v" id="statWorst">–</div><div class="l">Peor día</div><div class="sub" id="statWorstDate"></div>
+      </div>
     </div>
 
     <div class="tab-row" id="tabRow">
-      <button class="tab-btn active" data-tab="evol">Evolución</button>
-      <button class="tab-btn" data-tab="moods">Estados</button>
-      <button class="tab-btn" data-tab="weather">Clima</button>
-      <button class="tab-btn" data-tab="weekday">Día semana</button>
-      <button class="tab-btn" data-tab="dist">Distribución</button>
-      <button class="tab-btn" data-tab="heat">Mapa de calor</button>
-      <button class="tab-btn" data-tab="history">Historial</button>
+      <button class="tab-btn active" data-tab="evol" title="Línea de evolución de tu puntuación">Evolución</button>
+      <button class="tab-btn" data-tab="feelings" title="Ranking medio de cada sentimiento">Sentimientos</button>
+      <button class="tab-btn" data-tab="weather" title="Media de puntuación según el clima">Clima</button>
+      <button class="tab-btn" data-tab="weekday" title="Media de puntuación por día de la semana">Día semana</button>
+      <button class="tab-btn" data-tab="dist" title="Cuántas veces has puntuado cada nota">Distribución</button>
+      <button class="tab-btn" data-tab="cal" title="Calendario mensual con tus puntuaciones">Calendario</button>
+      <button class="tab-btn" data-tab="momentos" title="Resumen de tus momentos buenos, regulares y malos">Momentos</button>
+      <button class="tab-btn" data-tab="history" title="Lista de todos tus registros">Historial</button>
     </div>
 
     <div class="card panel active" data-panel="evol">
       <h2>Evolución de tu puntuación</h2>
       <canvas id="lineChart"></canvas>
     </div>
-    <div class="card panel" data-panel="moods">
-      <h2>Ranking de estados de ánimo</h2>
-      <canvas id="moodChart"></canvas>
+    <div class="card panel" data-panel="feelings">
+      <h2>Ranking de sentimientos (media)</h2>
+      <canvas id="feelingsChart"></canvas>
     </div>
     <div class="card panel" data-panel="weather">
       <h2>Media de puntuación según el clima</h2>
@@ -278,10 +359,18 @@
       <h2>Distribución de puntuaciones</h2>
       <canvas id="distChart"></canvas>
     </div>
-    <div class="card panel" data-panel="heat">
-      <h2>Mapa de calor — últimas semanas</h2>
-      <div class="heatlabels" id="heatLabelsRow"></div>
-      <div id="heatmap" class="heatmap"></div>
+    <div class="card panel" data-panel="cal">
+      <h2>Calendario</h2>
+      <div class="cal-head">
+        <button id="calPrev">‹</button>
+        <div class="cal-title" id="calTitle"></div>
+        <button id="calNext">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <div class="card panel" data-panel="momentos">
+      <h2>Tus momentos: buenos, regulares y malos</h2>
+      <canvas id="momentosChart"></canvas>
     </div>
     <div class="card panel" data-panel="history">
       <h2>Historial completo</h2>
@@ -293,13 +382,13 @@
   <div class="view" id="view-data">
     <div class="top">
       <button class="back-btn" id="backFromData">‹ Inicio</button>
-      <h1>Copia de seguridad</h1>
+      <h1 style="text-align:left; margin-top:0;">Copia de seguridad</h1>
     </div>
     <div class="card">
       <h2>Exportar e importar</h2>
       <div class="backup-row">
-        <button class="save-btn" id="exportBtn" style="background:linear-gradient(135deg, var(--cold), #7ba6f5); color:#0c1c33;">Exportar datos</button>
-        <button class="save-btn" id="importBtn" style="background:linear-gradient(135deg, var(--gold), #ffd98a); color:#332405;">Importar datos</button>
+        <button class="save-btn" id="exportBtn" title="Descargar un archivo con todos tus datos">Exportar datos</button>
+        <button class="save-btn secondary" id="importBtn" title="Recuperar datos desde un archivo exportado">Importar datos</button>
       </div>
       <input type="file" id="importFile" accept=".json">
       <div class="save-msg" id="backupMsg"></div>
@@ -309,15 +398,12 @@
 </div>
 
 <script>
-let customMoods = [];
-let selectedMoods = [];
-let allEntries = {};
-let selectedDate = todayStr();
-let currentWaypoints = [];
-let selectedWeather = null;
+const FEELINGS = ["Depresión","Ansiedad","Temor/Miedos","Frustración","Tristeza","Soledad","Estrés","Desánimo","Ánimo","Motivación","Tranquilidad"];
+const POSITIVE_FEELINGS = ["Ánimo","Motivación","Tranquilidad"];
 
 const WEATHER_OPTIONS = [
   {code:'sol', label:'☀️ Soleado'},
+  {code:'calor', label:'🥵 Calor'},
   {code:'nube', label:'⛅ Nublado'},
   {code:'lluvia', label:'🌧️ Lluvia'},
   {code:'frio', label:'❄️ Frío'},
@@ -325,29 +411,31 @@ const WEATHER_OPTIONS = [
   {code:'viento', label:'💨 Viento'}
 ];
 
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+let allEntries = {};
+let selectedDate = todayStr();
+let currentFeelings = {};
+let currentWaypoints = [];
+let selectedWeather = [];
+let wpPendingRating = null;
+let calViewDate = new Date();
 
-function scoreColor(v){
-  if(v<=5){ const t=(v-1)/4; return lerpColor('#5b8def','#f5c451', t); }
-  const t=(v-5)/5; return lerpColor('#f5c451','#ff8a5c', t);
-}
-function lerpColor(a,b,t){
-  const pa=hexToRgb(a), pb=hexToRgb(b);
-  return `rgb(${Math.round(pa.r+(pb.r-pa.r)*t)},${Math.round(pa.g+(pb.g-pa.g)*t)},${Math.round(pa.b+(pb.b-pa.b)*t)})`;
-}
-function hexToRgb(hex){ const v=parseInt(hex.slice(1),16); return {r:(v>>16)&255,g:(v>>8)&255,b:v&255}; }
-function emojiForScore(v){ if(v<=2)return"😞"; if(v<=4)return"😕"; if(v<=6)return"😐"; if(v<=8)return"🙂"; return"🤩"; }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
+/* ---------- color logic ---------- */
+function ragColor(v){
+  if(v<=3) return getComputedStyle(document.documentElement).getPropertyValue('--red').trim() || '#ef5350';
+  if(v<=6) return getComputedStyle(document.documentElement).getPropertyValue('--amber').trim() || '#f5a623';
+  return getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#2ecc71';
+}
+function ragColorFor(v, feelingName){
+  const inverted = feelingName && !POSITIVE_FEELINGS.includes(feelingName);
+  const effective = inverted ? (10 - v) : v;
+  return ragColor(effective);
+}
+function emojiForScore(v){ if(v<=2)return"😞"; if(v<=4)return"😕"; if(v<=6)return"😐"; if(v<=8)return"🙂"; return"🤩"; }
+
 /* ---------- storage ---------- */
-async function loadCustomMoods(){
-  try{ const raw = localStorage.getItem('custom-moods'); customMoods = raw ? JSON.parse(raw) : []; }
-  catch(e){ customMoods = []; }
-}
-async function saveCustomMoods(){
-  try{ localStorage.setItem('custom-moods', JSON.stringify(customMoods)); }
-  catch(e){ console.error(e); }
-}
 async function loadAllEntries(){
   allEntries = {};
   try{
@@ -376,113 +464,137 @@ function renderActivePanel(){
   renderPanel(activeBtn ? activeBtn.dataset.tab : 'evol');
 }
 
-/* ---------- mood chips ---------- */
-function renderChips(){
-  const container = document.getElementById('moodChips');
+/* ---------- feelings sliders ---------- */
+function renderFeelingsList(){
+  const container = document.getElementById('feelingsList');
   container.innerHTML = '';
-  customMoods.forEach(m=>{
-    const chip = document.createElement('div');
-    chip.className = 'chip' + (selectedMoods.includes(m) ? ' active' : '');
-    chip.textContent = m;
-    chip.onclick = ()=>{
-      if(selectedMoods.includes(m)) selectedMoods = selectedMoods.filter(x=>x!==m);
-      else selectedMoods.push(m);
-      renderChips();
-    };
-    container.appendChild(chip);
+  FEELINGS.forEach(name=>{
+    const val = currentFeelings[name] ?? 0;
+    const row = document.createElement('div');
+    row.className = 'feeling-row';
+    row.innerHTML = `
+      <div class="feeling-top"><span class="feeling-name">${name}</span><span class="feeling-val" id="fval-${cssid(name)}">${val}</span></div>
+      <div class="feeling-bar-track"><div class="feeling-bar-fill" id="fbar-${cssid(name)}"></div></div>
+      <input type="range" min="0" max="10" value="${val}" id="fslider-${cssid(name)}">
+    `;
+    container.appendChild(row);
+    const slider = row.querySelector('input[type=range]');
+    slider.addEventListener('input', ()=>{
+      const v = parseInt(slider.value);
+      currentFeelings[name] = v;
+      updateFeelingDisplay(name, v);
+    });
+    updateFeelingDisplay(name, val);
   });
-  const addChip = document.createElement('div');
-  addChip.className = 'chip add';
-  addChip.textContent = '+';
-  addChip.onclick = async ()=>{
-    const val = prompt('Nuevo estado de ánimo:');
-    if(val && val.trim()){
-      const clean = val.trim();
-      if(!customMoods.includes(clean)){ customMoods.push(clean); await saveCustomMoods(); }
-      selectedMoods.push(clean);
-      renderChips();
-    }
-  };
-  container.appendChild(addChip);
+}
+function cssid(name){ return name.replace(/[^a-zA-Z]/g,''); }
+function updateFeelingDisplay(name, v){
+  const color = ragColorFor(v, name);
+  const valEl = document.getElementById('fval-'+cssid(name));
+  const barEl = document.getElementById('fbar-'+cssid(name));
+  if(valEl){ valEl.textContent = v; valEl.style.color = color; }
+  if(barEl){ barEl.style.width = (v*10)+'%'; barEl.style.background = color; }
 }
 
+/* ---------- weather chips ---------- */
 function renderWeatherChips(){
   const container = document.getElementById('weatherChips');
   container.innerHTML = '';
   WEATHER_OPTIONS.forEach(w=>{
     const chip = document.createElement('div');
-    chip.className = 'chip' + (selectedWeather===w.code ? ' active' : '');
+    chip.className = 'chip' + (selectedWeather.includes(w.code) ? ' active' : '');
     chip.textContent = w.label;
-    chip.onclick = ()=>{ selectedWeather = (selectedWeather===w.code) ? null : w.code; renderWeatherChips(); };
+    chip.title = 'Puedes marcar varios tipos de clima a la vez';
+    chip.onclick = ()=>{
+      if(selectedWeather.includes(w.code)) selectedWeather = selectedWeather.filter(c=>c!==w.code);
+      else selectedWeather.push(w.code);
+      renderWeatherChips();
+    };
     container.appendChild(chip);
   });
 }
 
+/* ---------- waypoints ---------- */
 function renderWaypoints(){
   const container = document.getElementById('waypointList');
+  const label = document.getElementById('wpToggleLabel');
+  label.textContent = `Momentos registrados (${currentWaypoints.length})`;
   container.innerHTML = '';
   if(currentWaypoints.length===0){
-    container.innerHTML = '<div class="wp-empty">Sin momentos apuntados todavía hoy.</div>';
+    container.innerHTML = '<div class="wp-empty">Sin momentos apuntados todavía.</div>';
     return;
   }
-  currentWaypoints
-    .slice()
-    .sort((a,b)=> a.time.localeCompare(b.time))
-    .forEach((wp)=>{
-      const item = document.createElement('div');
-      item.className = 'wp-item';
-      item.innerHTML = `<div class="wp-time">${wp.time}</div><div class="wp-text">${escapeHtml(wp.text)}</div><button class="wp-del">✕</button>`;
-      item.querySelector('.wp-del').onclick = ()=>{
-        currentWaypoints = currentWaypoints.filter(w=>w!==wp);
-        renderWaypoints();
-      };
-      container.appendChild(item);
-    });
+  const dotColor = {bueno:'var(--green)', regular:'var(--amber)', malo:'var(--red)'};
+  currentWaypoints.slice().sort((a,b)=>a.time.localeCompare(b.time)).forEach(wp=>{
+    const item = document.createElement('div');
+    item.className = 'wp-item';
+    item.innerHTML = `<div class="wp-dot" style="background:${dotColor[wp.rating]||'var(--muted)'}"></div>
+      <div class="wp-time">${wp.time}</div><div class="wp-text">${escapeHtml(wp.text)}</div>
+      <button class="wp-del">✕</button>`;
+    item.querySelector('.wp-del').onclick = ()=>{ currentWaypoints = currentWaypoints.filter(w=>w!==wp); renderWaypoints(); };
+    container.appendChild(item);
+  });
 }
-
-function addWaypoint(){
-  const now = new Date();
-  const defaultTime = now.toTimeString().slice(0,5);
-  const timeInput = prompt('Hora (HH:MM):', defaultTime);
-  if(timeInput===null) return;
-  const text = prompt('¿Qué momento quieres apuntar?');
-  if(!text || !text.trim()) return;
-  currentWaypoints.push({ time: timeInput.trim() || defaultTime, text: text.trim() });
+function resetWpForm(){
+  document.getElementById('wpTextInput').value='';
+  document.getElementById('wpTimeInput').value='';
+  wpPendingRating = null;
+  document.querySelectorAll('.wp-rating-btn').forEach(b=>b.className='wp-rating-btn');
+  document.getElementById('wpAddForm').classList.remove('active');
+}
+function confirmWaypoint(){
+  const text = document.getElementById('wpTextInput').value.trim();
+  const time = document.getElementById('wpTimeInput').value || new Date().toTimeString().slice(0,5);
+  if(!text){ alert('Escribe qué ha pasado.'); return; }
+  if(!wpPendingRating){ alert('Elige si fue un momento bueno, regular o malo.'); return; }
+  currentWaypoints.push({ time, text, rating: wpPendingRating });
+  resetWpForm();
+  document.getElementById('waypointList').style.display='flex';
+  document.getElementById('wpToggleArrow').textContent='▴';
   renderWaypoints();
 }
 
-/* ---------- dial / form for selected date ---------- */
+/* ---------- dial / form ---------- */
 function updateDial(){
   const v = parseInt(document.getElementById('scoreSlider').value);
+  const color = ragColor(v);
   document.getElementById('scoreNum').textContent = v;
-  document.getElementById('scoreNum').style.color = scoreColor(v);
+  document.getElementById('scoreNum').style.color = color;
   document.getElementById('dialEmoji').textContent = emojiForScore(v);
+  document.getElementById('scoreBarFill').style.width = (v*10)+'%';
+  document.getElementById('scoreBarFill').style.background = color;
 }
 function updateDialAvg(){
   const dates = Object.keys(allEntries);
-  if(dates.length===0){ document.getElementById('dialAvg').textContent='–'; return; }
+  const el = document.getElementById('dialAvg');
+  if(dates.length===0){ el.textContent='–'; el.style.color='var(--ink)'; return; }
   const avg = dates.reduce((s,d)=>s+allEntries[d].score,0)/dates.length;
-  document.getElementById('dialAvg').textContent = avg.toFixed(1);
+  el.textContent = avg.toFixed(1);
+  el.style.color = ragColor(Math.round(avg));
 }
 function loadFormForDate(ds){
   selectedDate = ds;
   document.getElementById('datePicker').value = ds;
   const entry = allEntries[ds];
   document.getElementById('scoreSlider').value = entry ? entry.score : 5;
-  selectedMoods = entry ? (entry.moods||[]).slice() : [];
-  selectedWeather = entry ? (entry.weather||null) : null;
+  currentFeelings = entry ? Object.assign({}, entry.feelings||{}) : {};
+  selectedWeather = entry ? (Array.isArray(entry.weather) ? entry.weather.slice() : (entry.weather ? [entry.weather] : [])) : [];
   currentWaypoints = entry ? (entry.waypoints||[]).slice() : [];
   document.getElementById('journalText').value = entry ? (entry.text||'') : '';
   updateDial();
-  renderChips();
+  renderFeelingsList();
   renderWeatherChips();
+  resetWpForm();
+  document.getElementById('waypointList').style.display='none';
+  document.getElementById('wpToggleArrow').textContent='▾';
   renderWaypoints();
 }
 
 async function saveEntry(){
   const score = parseInt(document.getElementById('scoreSlider').value);
   const text = document.getElementById('journalText').value.trim();
-  const entry = { score, moods: selectedMoods, weather: selectedWeather, waypoints: currentWaypoints, text, savedAt: new Date().toISOString() };
+  FEELINGS.forEach(f=>{ if(currentFeelings[f]===undefined) currentFeelings[f]=0; });
+  const entry = { score, feelings: Object.assign({}, currentFeelings), weather: selectedWeather, waypoints: currentWaypoints, text, savedAt: new Date().toISOString() };
   try{
     localStorage.setItem('entry:'+selectedDate, JSON.stringify(entry));
     allEntries[selectedDate] = entry;
@@ -496,37 +608,40 @@ async function saveEntry(){
 }
 
 /* ---------- stats ---------- */
-function computeStreak(){
-  let streak=0; let d=new Date();
-  while(true){ const ds=d.toISOString().slice(0,10); if(allEntries[ds]){streak++; d.setDate(d.getDate()-1);} else break; }
-  return streak;
-}
-function computeBestStreak(){
-  const dates = Object.keys(allEntries).sort();
-  if(dates.length===0) return 0;
-  let best=1, current=1;
-  for(let i=1;i<dates.length;i++){
-    const diff = Math.round((new Date(dates[i]+'T00:00:00') - new Date(dates[i-1]+'T00:00:00'))/86400000);
-    if(diff===1){ current++; best=Math.max(best,current); } else current=1;
-  }
-  return best;
-}
 function renderStatBoxes(){
   const dates = Object.keys(allEntries).sort();
   document.getElementById('statTotal').textContent = dates.length;
-  document.getElementById('statStreak').textContent = computeStreak();
-  document.getElementById('statBestStreak').textContent = computeBestStreak();
-  document.getElementById('statAvg').textContent = dates.length ? (dates.reduce((s,d)=>s+allEntries[d].score,0)/dates.length).toFixed(1) : '–';
+  const avgEl = document.getElementById('statAvg');
+  if(dates.length===0){ avgEl.textContent='–'; avgEl.style.color='var(--ink)'; }
+  else{
+    const avg = dates.reduce((s,d)=>s+allEntries[d].score,0)/dates.length;
+    avgEl.textContent = avg.toFixed(1);
+    avgEl.style.color = ragColor(Math.round(avg));
+  }
+  if(dates.length===0){
+    document.getElementById('statBest').textContent='–'; document.getElementById('statBestDate').textContent='';
+    document.getElementById('statWorst').textContent='–'; document.getElementById('statWorstDate').textContent='';
+  } else {
+    let bestD=dates[0], worstD=dates[0];
+    dates.forEach(d=>{ if(allEntries[d].score>allEntries[bestD].score) bestD=d; if(allEntries[d].score<allEntries[worstD].score) worstD=d; });
+    document.getElementById('statBest').textContent = allEntries[bestD].score;
+    document.getElementById('statBest').style.color = ragColor(allEntries[bestD].score);
+    document.getElementById('statBestDate').textContent = new Date(bestD+'T00:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+    document.getElementById('statWorst').textContent = allEntries[worstD].score;
+    document.getElementById('statWorst').style.color = ragColor(allEntries[worstD].score);
+    document.getElementById('statWorstDate').textContent = new Date(worstD+'T00:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+  }
 }
 
 function renderPanel(tab){
   const dates = Object.keys(allEntries).sort();
   if(tab==='evol') renderLineChart(dates);
-  else if(tab==='moods') renderMoodDonut(dates);
+  else if(tab==='feelings') renderFeelingsChart(dates);
   else if(tab==='weather') renderWeatherChart(dates);
   else if(tab==='weekday') renderWeekdayChart(dates);
   else if(tab==='dist') renderDistChart(dates);
-  else if(tab==='heat') renderHeatmap(dates);
+  else if(tab==='cal') renderCalendar();
+  else if(tab==='momentos') renderMomentosChart(dates);
   else if(tab==='history') renderHistory(dates);
 }
 
@@ -537,39 +652,45 @@ function renderLineChart(dates){
   window._lineChartInst = new Chart(ctx, {
     type:'line',
     data:{ labels: last30.map(d=>d.slice(5)),
-      datasets:[{ data:last30.map(d=>allEntries[d].score), borderColor:'#ff8a5c',
-        backgroundColor:'rgba(255,138,92,0.15)', fill:true, tension:0.35, pointRadius:3, pointBackgroundColor:'#ffb088'}]},
+      datasets:[{ data:last30.map(d=>allEntries[d].score), borderColor:'#22c3a6',
+        backgroundColor:'rgba(34,195,166,0.13)', fill:true, tension:0.3, pointRadius:3,
+        pointBackgroundColor: last30.map(d=>ragColor(allEntries[d].score)) }]},
     options:{ plugins:{legend:{display:false}},
-      scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#9b93b5'}},
-               x:{grid:{display:false}, ticks:{color:'#9b93b5', maxRotation:0}} } }
+      scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#8d8fa0'}},
+               x:{grid:{display:false}, ticks:{color:'#8d8fa0', maxRotation:0}} } }
   });
 }
-function renderMoodDonut(dates){
-  const moodCount = {};
-  dates.forEach(d=>{ (allEntries[d].moods||[]).forEach(m=>{ moodCount[m]=(moodCount[m]||0)+1; }); });
-  const sorted = Object.entries(moodCount).sort((a,b)=>b[1]-a[1]);
-  const ctx = document.getElementById('moodChart');
-  if(window._moodChartInst) window._moodChartInst.destroy();
-  const palette = ['#ff8a5c','#4fd1ae','#f5c451','#5b8def','#c77dff','#ff6b9d','#ff8a5c','#4fd1ae','#f5c451','#5b8def'];
-  window._moodChartInst = new Chart(ctx, {
+function renderFeelingsChart(dates){
+  const sums = {}, cnt = {};
+  FEELINGS.forEach(f=>{ sums[f]=0; cnt[f]=0; });
+  dates.forEach(d=>{
+    const fe = allEntries[d].feelings || {};
+    FEELINGS.forEach(f=>{ if(fe[f]!==undefined){ sums[f]+=fe[f]; cnt[f]++; } });
+  });
+  const data = FEELINGS.map(f=> cnt[f] ? +(sums[f]/cnt[f]).toFixed(2) : 0)
+    .map((v,i)=>({name:FEELINGS[i], val:v}))
+    .sort((a,b)=>b.val-a.val);
+  const ctx = document.getElementById('feelingsChart');
+  if(window._feelingsChartInst) window._feelingsChartInst.destroy();
+  window._feelingsChartInst = new Chart(ctx, {
     type:'bar',
-    data:{ labels: sorted.map(s=>s[0]), datasets:[{ data: sorted.map(s=>s[1]), backgroundColor: sorted.map((_,i)=>palette[i%palette.length]), borderRadius:8 }]},
+    data:{ labels:data.map(d=>d.name), datasets:[{ data:data.map(d=>d.val), backgroundColor:data.map(d=>ragColorFor(d.val, d.name)), borderRadius:8 }]},
     options:{
       indexAxis:'y',
       plugins:{ legend:{display:false} },
-      scales:{ x:{ beginAtZero:true, ticks:{color:'#9b93b5', precision:0}, grid:{color:'rgba(255,255,255,0.06)'} },
-                y:{ grid:{display:false}, ticks:{color:'#f3eef9', font:{size:12}} } }
+      scales:{ x:{ min:0,max:10, ticks:{color:'#8d8fa0'}, grid:{color:'rgba(255,255,255,0.06)'} },
+                y:{ grid:{display:false}, ticks:{color:'#f2f2f5', font:{size:11.5}} } }
     }
   });
 }
-
 function renderWeatherChart(dates){
   const sum = {}, cnt = {};
   dates.forEach(d=>{
-    const w = allEntries[d].weather;
-    if(!w) return;
-    sum[w] = (sum[w]||0) + allEntries[d].score;
-    cnt[w] = (cnt[w]||0) + 1;
+    const ws = Array.isArray(allEntries[d].weather) ? allEntries[d].weather : (allEntries[d].weather ? [allEntries[d].weather] : []);
+    ws.forEach(w=>{
+      sum[w] = (sum[w]||0) + allEntries[d].score;
+      cnt[w] = (cnt[w]||0) + 1;
+    });
   });
   const labels = WEATHER_OPTIONS.filter(w=>cnt[w.code]).map(w=>w.label);
   const avgs = WEATHER_OPTIONS.filter(w=>cnt[w.code]).map(w=> +(sum[w.code]/cnt[w.code]).toFixed(2));
@@ -577,9 +698,9 @@ function renderWeatherChart(dates){
   if(window._weatherChartInst) window._weatherChartInst.destroy();
   window._weatherChartInst = new Chart(ctx, {
     type:'bar',
-    data:{ labels, datasets:[{ data:avgs, backgroundColor:avgs.map(v=>scoreColor(v)), borderRadius:8 }]},
+    data:{ labels, datasets:[{ data:avgs, backgroundColor:avgs.map(v=>ragColor(v)), borderRadius:8 }]},
     options:{ plugins:{legend:{display:false}},
-      scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#9b93b5'}}, x:{grid:{display:false}, ticks:{color:'#9b93b5'}} } }
+      scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#8d8fa0'}}, x:{grid:{display:false}, ticks:{color:'#8d8fa0'}} } }
   });
 }
 function renderWeekdayChart(dates){
@@ -591,9 +712,9 @@ function renderWeekdayChart(dates){
   if(window._weekdayChartInst) window._weekdayChartInst.destroy();
   window._weekdayChartInst = new Chart(ctx, {
     type:'bar',
-    data:{ labels:names, datasets:[{ data:avg.map(v=>+v.toFixed(2)), backgroundColor:avg.map(v=>v>0?scoreColor(v):'rgba(255,255,255,0.08)'), borderRadius:8 }]},
+    data:{ labels:names, datasets:[{ data:avg.map(v=>+v.toFixed(2)), backgroundColor:avg.map(v=>v>0?ragColor(v):'rgba(255,255,255,0.08)'), borderRadius:8 }]},
     options:{ plugins:{legend:{display:false}},
-      scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#9b93b5'}}, x:{grid:{display:false}, ticks:{color:'#9b93b5'}} } }
+      scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#8d8fa0'}}, x:{grid:{display:false}, ticks:{color:'#8d8fa0'}} } }
   });
 }
 function renderDistChart(dates){
@@ -604,33 +725,64 @@ function renderDistChart(dates){
   window._distChartInst = new Chart(ctx, {
     type:'bar',
     data:{ labels:['1','2','3','4','5','6','7','8','9','10'],
-      datasets:[{ data:dist, backgroundColor:[1,2,3,4,5,6,7,8,9,10].map(v=>scoreColor(v)), borderRadius:6 }]},
+      datasets:[{ data:dist, backgroundColor:[1,2,3,4,5,6,7,8,9,10].map(v=>ragColor(v)), borderRadius:6 }]},
     options:{ plugins:{legend:{display:false}},
-      scales:{ y:{beginAtZero:true, ticks:{color:'#9b93b5', precision:0}, grid:{color:'rgba(255,255,255,0.06)'}}, x:{grid:{display:false}, ticks:{color:'#9b93b5'}} } }
+      scales:{ y:{beginAtZero:true, ticks:{color:'#8d8fa0', precision:0}, grid:{color:'rgba(255,255,255,0.06)'}}, x:{grid:{display:false}, ticks:{color:'#8d8fa0'}} } }
   });
 }
-function renderHeatmap(){
-  const labelsRow = document.getElementById('heatLabelsRow');
-  labelsRow.innerHTML = '';
-  ['D','L','M','X','J','V','S'].forEach(l=>{ const s=document.createElement('span'); s.textContent=l; labelsRow.appendChild(s); });
+function renderMomentosChart(dates){
+  const counts = {bueno:0, regular:0, malo:0};
+  dates.forEach(d=>{ (allEntries[d].waypoints||[]).forEach(wp=>{ if(counts[wp.rating]!==undefined) counts[wp.rating]++; }); });
+  const ctx = document.getElementById('momentosChart');
+  if(window._momentosChartInst) window._momentosChartInst.destroy();
+  window._momentosChartInst = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels:['Buenos','Regulares','Malos'], datasets:[{ data:[counts.bueno,counts.regular,counts.malo], backgroundColor:['#2ecc71','#f5a623','#ef5350'], borderWidth:0 }]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ color:'#f2f2f5', font:{size:11} } } } }
+  });
+}
 
-  const container = document.getElementById('heatmap');
-  container.innerHTML = '';
-  const weeks=10, totalDays=weeks*7;
-  const today=new Date(); today.setHours(0,0,0,0);
-  const endDow = today.getDay();
-  const start = new Date(today);
-  start.setDate(start.getDate() - (totalDays-1) - (6-endDow));
-  for(let i=0;i<totalDays;i++){
-    const d=new Date(start); d.setDate(d.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
-    const cell=document.createElement('div'); cell.className='hcell';
-    if(d>today) cell.style.background='transparent';
-    else if(allEntries[ds]){ cell.style.background=scoreColor(allEntries[ds].score); cell.title=`${ds}: ${allEntries[ds].score}/10`; }
-    cell.onclick=()=>{ if(d<=today){ showView('home'); loadFormForDate(ds); } };
-    container.appendChild(cell);
+/* ---------- calendar ---------- */
+function renderCalendar(){
+  const grid = document.getElementById('calGrid');
+  const title = document.getElementById('calTitle');
+  grid.innerHTML='';
+  const year = calViewDate.getFullYear(), month = calViewDate.getMonth();
+  title.textContent = calViewDate.toLocaleDateString('es-ES',{month:'long', year:'numeric'});
+  ['L','M','X','J','V','S','D'].forEach(d=>{
+    const el=document.createElement('div'); el.className='cal-wd'; el.textContent=d; grid.appendChild(el);
+  });
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay()-1; if(startOffset<0) startOffset=6;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for(let i=0;i<startOffset;i++){ const el=document.createElement('div'); el.className='cal-cell empty'; grid.appendChild(el); }
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(year, month, day);
+    const ds = d.toISOString().slice(0,10);
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    cell.textContent = day;
+    if(d>today){ cell.classList.add('future'); }
+    else if(allEntries[ds]){
+      const sc = allEntries[ds].score;
+      cell.style.background = ragColor(sc);
+      cell.style.color = '#0c0c10';
+      const badge = document.createElement('span');
+      badge.className='score-badge'; badge.textContent=sc; badge.style.color='#fff';
+      cell.appendChild(badge);
+      cell.title = `${ds}: ${sc}/10`;
+    }
+    if(d<=today){
+      cell.onclick = ()=>{ showView('home'); loadFormForDate(ds); };
+    } else {
+      cell.style.cursor='default';
+    }
+    grid.appendChild(cell);
   }
 }
+
 function renderHistory(dates){
   const list = dates.slice().reverse();
   const container = document.getElementById('historyList');
@@ -640,11 +792,12 @@ function renderHistory(dates){
     const e=allEntries[d];
     const item=document.createElement('div'); item.className='h-item';
     const label=new Date(d+'T00:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});
+    const wList = Array.isArray(e.weather) ? e.weather : (e.weather ? [e.weather] : []);
+    const wLabels = wList.map(code => WEATHER_OPTIONS.find(w=>w.code===code)?.label).filter(Boolean).join(' ');
     item.innerHTML = `
-      <div class="h-top"><div class="h-date">${label}${e.weather ? ' · ' + (WEATHER_OPTIONS.find(w=>w.code===e.weather)?.label.split(' ')[0]||'') : ''}</div>
-      <div class="h-score" style="color:${scoreColor(e.score)}">${e.score}/10 ${emojiForScore(e.score)}</div></div>
-      ${e.moods && e.moods.length ? `<div class="h-moods">${e.moods.join(' · ')}</div>` : ''}
-      ${e.waypoints && e.waypoints.length ? `<div class="h-moods">🕐 ${e.waypoints.map(w=>w.time+' '+w.text).join(' · ')}</div>` : ''}
+      <div class="h-top"><div class="h-date">${label}${wLabels ? ' · ' + wLabels : ''}</div>
+      <div class="h-score" style="color:${ragColor(e.score)}">${e.score}/10 ${emojiForScore(e.score)}</div></div>
+      ${e.waypoints && e.waypoints.length ? `<div class="h-sub">🕐 ${e.waypoints.length} momento(s) registrados</div>` : ''}
       ${e.text ? `<div class="h-text">${escapeHtml(e.text)}</div>` : ''}`;
     item.onclick = ()=>{ showView('home'); loadFormForDate(d); };
     container.appendChild(item);
@@ -654,7 +807,7 @@ function renderHistory(dates){
 /* ---------- backup ---------- */
 function exportData(){
   try{
-    const payload = { entries: allEntries, customMoods, exportedAt:new Date().toISOString(), version:1 };
+    const payload = { entries: allEntries, exportedAt:new Date().toISOString(), version:2 };
     const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -672,7 +825,6 @@ function importData(file){
       if(!payload.entries) throw new Error('formato no reconocido');
       if(!confirm('Esto añadirá/actualizará tus registros con los del backup. ¿Continuar?')) return;
       for(const [date,entry] of Object.entries(payload.entries)) localStorage.setItem('entry:'+date, JSON.stringify(entry));
-      if(payload.customMoods){ customMoods = Array.from(new Set([...customMoods, ...payload.customMoods])); await saveCustomMoods(); }
       await loadAllEntries();
       loadFormForDate(selectedDate);
       updateDialAvg();
@@ -693,14 +845,36 @@ async function init(){
   document.getElementById('backFromStats').addEventListener('click', ()=>showView('home'));
   document.getElementById('backFromData').addEventListener('click', ()=>showView('home'));
   document.getElementById('goTodayBtn').addEventListener('click', ()=>loadFormForDate(todayStr()));
-  document.getElementById('addWaypointBtn').addEventListener('click', addWaypoint);
   document.getElementById('datePicker').addEventListener('change', (e)=>loadFormForDate(e.target.value));
   document.getElementById('exportBtn').addEventListener('click', exportData);
   document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
   document.getElementById('importFile').addEventListener('change', (e)=>{ if(e.target.files[0]) importData(e.target.files[0]); });
   document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=>showPanel(b.dataset.tab)));
 
-  await loadCustomMoods();
+  document.getElementById('addWaypointBtn').addEventListener('click', ()=>{
+    document.getElementById('wpAddForm').classList.add('active');
+    if(!document.getElementById('wpTimeInput').value){
+      document.getElementById('wpTimeInput').value = new Date().toTimeString().slice(0,5);
+    }
+  });
+  document.getElementById('wpConfirmBtn').addEventListener('click', confirmWaypoint);
+  document.querySelectorAll('.wp-rating-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      wpPendingRating = btn.dataset.rating;
+      document.querySelectorAll('.wp-rating-btn').forEach(b=>b.className='wp-rating-btn');
+      btn.className = 'wp-rating-btn sel-'+wpPendingRating;
+    });
+  });
+  document.getElementById('wpToggleBtn').addEventListener('click', ()=>{
+    const list = document.getElementById('waypointList');
+    const arrow = document.getElementById('wpToggleArrow');
+    const show = list.style.display==='none';
+    list.style.display = show ? 'flex' : 'none';
+    arrow.textContent = show ? '▴' : '▾';
+  });
+  document.getElementById('calPrev').addEventListener('click', ()=>{ calViewDate.setMonth(calViewDate.getMonth()-1); renderCalendar(); });
+  document.getElementById('calNext').addEventListener('click', ()=>{ calViewDate.setMonth(calViewDate.getMonth()+1); renderCalendar(); });
+
   await loadAllEntries();
   loadFormForDate(todayStr());
   updateDialAvg();
