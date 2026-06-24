@@ -241,8 +241,8 @@
   <!-- ============ HOME ============ -->
   <div class="view active" id="view-home">
     <div class="top">
-      <div class="eyebrow">Tu registro privado</div>
-      <div class="title-row"><h1>Mi Estado Diario</h1><span class="version">v0.3 beta</span></div>
+      <div class="eyebrow" style="display:none;"></div>
+      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v0.5 beta</span></div>
     </div>
 
     <div class="card">
@@ -272,6 +272,15 @@
       </button>
       <div id="feelingsSummary" class="chip-row" style="margin-bottom:4px;"></div>
       <div id="feelingsList" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>¿Cómo dormiste?</h2>
+      <div class="wp-rating-row">
+        <button class="wp-rating-btn" id="sleepBueno" data-sleep="bueno" title="Dormiste bien">🟢 Bueno</button>
+        <button class="wp-rating-btn" id="sleepRegular" data-sleep="regular" title="Sueño regular">🟠 Regular</button>
+        <button class="wp-rating-btn" id="sleepMalo" data-sleep="malo" title="Dormiste mal">🔴 Malo</button>
+      </div>
     </div>
 
     <div class="card">
@@ -349,6 +358,7 @@
       <button class="tab-btn active" data-tab="evol" title="Línea de evolución de tu puntuación">Evolución</button>
       <button class="tab-btn" data-tab="feelings" title="Ranking medio de cada sentimiento">Sentimientos</button>
       <button class="tab-btn" data-tab="weather" title="Media de puntuación según el clima">Clima</button>
+      <button class="tab-btn" data-tab="sleep" title="Media de puntuación según cómo dormiste">Sueño</button>
       <button class="tab-btn" data-tab="weekday" title="Media de puntuación por día de la semana">Día semana</button>
       <button class="tab-btn" data-tab="dist" title="Cuántas veces has puntuado cada nota">Distribución</button>
       <button class="tab-btn" data-tab="cal" title="Calendario mensual con tus puntuaciones">Calendario</button>
@@ -367,6 +377,10 @@
     <div class="card panel" data-panel="weather">
       <h2>Media de puntuación según el clima</h2>
       <canvas id="weatherChart"></canvas>
+    </div>
+    <div class="card panel" data-panel="sleep">
+      <h2>Media de puntuación según cómo dormiste</h2>
+      <canvas id="sleepChart"></canvas>
     </div>
     <div class="card panel" data-panel="weekday">
       <h2>Media por día de la semana</h2>
@@ -438,6 +452,7 @@ let selectedDate = todayStr();
 let currentFeelings = {};
 let currentWaypoints = [];
 let selectedWeather = [];
+let selectedSleep = null;
 let wpPendingRating = null;
 let wpPendingPhoto = null;
 let calViewDate = new Date();
@@ -553,6 +568,12 @@ function renderFeelingsSummary(){
 }
 
 /* ---------- weather chips ---------- */
+function renderSleepButtons(){
+  ['bueno','regular','malo'].forEach(s=>{
+    const btn = document.getElementById('sleep'+s.charAt(0).toUpperCase()+s.slice(1));
+    btn.className = 'wp-rating-btn' + (selectedSleep===s ? ' sel-'+s : '');
+  });
+}
 function renderWeatherChips(){
   const container = document.getElementById('weatherChips');
   container.innerHTML = '';
@@ -670,6 +691,8 @@ function loadFormForDate(ds){
   document.getElementById('scoreSlider').value = entry ? entry.score : 5;
   currentFeelings = entry ? Object.assign({}, entry.feelings||{}) : {};
   selectedWeather = entry ? (Array.isArray(entry.weather) ? entry.weather.slice() : (entry.weather ? [entry.weather] : [])) : [];
+  selectedSleep = entry ? (entry.sleep||null) : null;
+  renderSleepButtons();
   currentWaypoints = entry ? (entry.waypoints||[]).slice() : [];
   document.getElementById('journalText').value = entry ? (entry.text||'') : '';
   updateDial();
@@ -700,7 +723,7 @@ async function saveEntry(){
   const score = parseInt(document.getElementById('scoreSlider').value);
   const text = document.getElementById('journalText').value.trim();
   FEELINGS.forEach(f=>{ if(currentFeelings[f]===undefined) currentFeelings[f]=0; });
-  const entry = { score, feelings: Object.assign({}, currentFeelings), weather: selectedWeather, waypoints: currentWaypoints, text, savedAt: new Date().toISOString() };
+  const entry = { score, feelings: Object.assign({}, currentFeelings), weather: selectedWeather, sleep: selectedSleep, waypoints: currentWaypoints, text, savedAt: new Date().toISOString() };
   try{
     localStorage.setItem('entry:'+selectedDate, JSON.stringify(entry));
     allEntries[selectedDate] = entry;
@@ -744,6 +767,7 @@ function renderPanel(tab){
   if(tab==='evol') renderLineChart(dates);
   else if(tab==='feelings') renderFeelingsChart(dates);
   else if(tab==='weather') renderWeatherChart(dates);
+  else if(tab==='sleep') renderSleepChart(dates);
   else if(tab==='weekday') renderWeekdayChart(dates);
   else if(tab==='dist') renderDistChart(dates);
   else if(tab==='cal') renderCalendar();
@@ -803,6 +827,27 @@ function renderWeatherChart(dates){
   const ctx = document.getElementById('weatherChart');
   if(window._weatherChartInst) window._weatherChartInst.destroy();
   window._weatherChartInst = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data:avgs, backgroundColor:avgs.map(v=>ragColor(v)), borderRadius:8 }]},
+    options:{ plugins:{legend:{display:false}},
+      scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#8d8fa0'}}, x:{grid:{display:false}, ticks:{color:'#8d8fa0'}} } }
+  });
+}
+function renderSleepChart(dates){
+  const labelsMap = {bueno:'🟢 Bueno', regular:'🟠 Regular', malo:'🔴 Malo'};
+  const sum = {}, cnt = {};
+  dates.forEach(d=>{
+    const s = allEntries[d].sleep;
+    if(!s) return;
+    sum[s] = (sum[s]||0) + allEntries[d].score;
+    cnt[s] = (cnt[s]||0) + 1;
+  });
+  const order = ['malo','regular','bueno'];
+  const labels = order.filter(s=>cnt[s]).map(s=>labelsMap[s]);
+  const avgs = order.filter(s=>cnt[s]).map(s=> +(sum[s]/cnt[s]).toFixed(2));
+  const ctx = document.getElementById('sleepChart');
+  if(window._sleepChartInst) window._sleepChartInst.destroy();
+  window._sleepChartInst = new Chart(ctx, {
     type:'bar',
     data:{ labels, datasets:[{ data:avgs, backgroundColor:avgs.map(v=>ragColor(v)), borderRadius:8 }]},
     options:{ plugins:{legend:{display:false}},
@@ -900,8 +945,10 @@ function renderHistory(dates){
     const label=new Date(d+'T00:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});
     const wList = Array.isArray(e.weather) ? e.weather : (e.weather ? [e.weather] : []);
     const wLabels = wList.map(code => WEATHER_OPTIONS.find(w=>w.code===code)?.label).filter(Boolean).join(' ');
+    const sleepEmoji = {bueno:'🟢', regular:'🟠', malo:'🔴'};
+    const sleepLabel = e.sleep ? `${sleepEmoji[e.sleep]} Sueño` : '';
     item.innerHTML = `
-      <div class="h-top"><div class="h-date">${label}${wLabels ? ' · ' + wLabels : ''}</div>
+      <div class="h-top"><div class="h-date">${label}${wLabels ? ' · ' + wLabels : ''}${sleepLabel ? ' · ' + sleepLabel : ''}</div>
       <div class="h-score" style="color:${ragColor(e.score)}">${e.score}/10 ${emojiForScore(e.score)}</div></div>
       ${e.waypoints && e.waypoints.length ? `<div class="h-sub">🕐 ${e.waypoints.length} momento(s) registrados</div>` : ''}
       ${e.text ? `<div class="h-text">${escapeHtml(e.text)}</div>` : ''}`;
@@ -978,6 +1025,12 @@ async function init(){
     const show = list.style.display==='none';
     list.style.display = show ? 'flex' : 'none';
     arrow.textContent = show ? '▴' : '▾';
+  });
+  ['bueno','regular','malo'].forEach(s=>{
+    document.getElementById('sleep'+s.charAt(0).toUpperCase()+s.slice(1)).addEventListener('click', ()=>{
+      selectedSleep = (selectedSleep===s) ? null : s;
+      renderSleepButtons();
+    });
   });
   document.getElementById('feelingsToggleBtn').addEventListener('click', ()=>{
     const list = document.getElementById('feelingsList');
