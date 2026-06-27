@@ -100,7 +100,9 @@
   .changelog{ display:flex; flex-direction:column; gap:11px; }
   .changelog-item{ font-size:12.5px; color:var(--muted); line-height:1.5; padding-bottom:11px; border-bottom:1px solid var(--line); }
   .changelog-item:last-child{ border-bottom:none; padding-bottom:0; }
-  .changelog-v{ font-family:'Inter'; font-weight:800; color:var(--accent); font-size:12.5px; margin-right:6px; }
+  .changelog-v{ font-family:'Inter'; font-weight:800; color:var(--accent); font-size:12.5px; margin-right:6px; display:block; margin-bottom:4px; }
+  .changelog-item ul{ margin:0; padding-left:18px; }
+  .changelog-item li{ font-size:12.5px; color:var(--muted); line-height:1.6; }
   .dial-zone{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
   .dial-num{
     font-family:'Inter'; font-weight:900;
@@ -271,7 +273,7 @@
     <div class="top">
       <button class="back-btn" id="returnToStatsBtn" style="display:none;">‹ Volver a estadísticas</button>
       <div class="eyebrow" style="display:none;"></div>
-      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v0.8 beta</span></div>
+      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v0.9 beta</span></div>
     </div>
 
     <div class="card">
@@ -313,9 +315,9 @@
     <div class="card">
       <h2>¿Cómo dormiste?</h2>
       <div class="wp-rating-row">
-        <button class="wp-rating-btn" id="sleepBueno" data-sleep="bueno" title="Dormiste bien">🟢 Bueno</button>
-        <button class="wp-rating-btn" id="sleepRegular" data-sleep="regular" title="Sueño regular">🟠 Regular</button>
-        <button class="wp-rating-btn" id="sleepMalo" data-sleep="malo" title="Dormiste mal">🔴 Malo</button>
+        <button class="wp-rating-btn" id="sleepBueno" data-sleep="bueno" title="Dormiste bien">🟢 BIEN</button>
+        <button class="wp-rating-btn" id="sleepRegular" data-sleep="regular" title="Sueño regular">🟠 REGULAR</button>
+        <button class="wp-rating-btn" id="sleepMalo" data-sleep="malo" title="Dormiste mal">🔴 MAL</button>
       </div>
     </div>
 
@@ -466,14 +468,74 @@
     <div class="card" style="margin-top:4px;">
       <h2>📋 Historial de versiones</h2>
       <div class="changelog">
-        <div class="changelog-item"><span class="changelog-v">v0.8 beta</span> Mosaico de valores resumen (media y peso) y este historial de versiones.</div>
-        <div class="changelog-item"><span class="changelog-v">v0.7 beta</span> Registro de peso con rueda selectora, gráfica de evolución del peso, puntito de peso en el calendario, mosaico de valores resumen.</div>
-        <div class="changelog-item"><span class="changelog-v">v0.6 beta</span> Hasta 5 fotos por momento, botón "Volver a estadísticas" desde calendario e historial.</div>
-        <div class="changelog-item"><span class="changelog-v">v0.5 beta</span> Eliminado el texto "Tu registro privado" de la cabecera.</div>
-        <div class="changelog-item"><span class="changelog-v">v0.4 beta</span> Campo de calidad de sueño (bueno/regular/malo) con su propia estadística.</div>
-        <div class="changelog-item"><span class="changelog-v">v0.3 beta</span> Botón para borrar el registro de un día, rango de puntuación 0-10, degradado de color continuo rojo-ámbar-verde.</div>
-        <div class="changelog-item"><span class="changelog-v">v0.2 beta</span> Ajustes de zona segura en iPhone (Dynamic Island), hora editable en momentos, fuente Inter en números, sentimientos de 0 a 10, clima con selección múltiple.</div>
-        <div class="changelog-item"><span class="changelog-v">v0.1 beta</span> Primera versión con pantallas separadas (Inicio/Estadísticas/Copia de seguridad), sentimientos, clima, momentos del día y calendario.</div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.9 beta</span>
+          <ul>
+            <li>Los sentimientos se pliegan solos al guardar el registro.</li>
+            <li>Etiquetas de sueño cambiadas a BIEN / REGULAR / MAL.</li>
+            <li>Historial de versiones reorganizado en líneas separadas.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.8 beta</span>
+          <ul>
+            <li>Mosaico de valores resumen (media y peso).</li>
+            <li>Añadido este historial de versiones.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.7 beta</span>
+          <ul>
+            <li>Registro de peso con rueda selectora.</li>
+            <li>Gráfica de evolución del peso en Estadísticas.</li>
+            <li>Puntito de peso registrado en el Calendario.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.6 beta</span>
+          <ul>
+            <li>Hasta 5 fotos por momento del día.</li>
+            <li>Botón "Volver a estadísticas" desde Calendario e Historial.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.5 beta</span>
+          <ul>
+            <li>Eliminado el texto "Tu registro privado" de la cabecera.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.4 beta</span>
+          <ul>
+            <li>Campo de calidad de sueño (bueno/regular/malo).</li>
+            <li>Nueva estadística de puntuación media según el sueño.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.3 beta</span>
+          <ul>
+            <li>Botón para borrar el registro de un día.</li>
+            <li>Rango de puntuación ampliado de 0 a 10.</li>
+            <li>Degradado de color continuo rojo-ámbar-verde.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.2 beta</span>
+          <ul>
+            <li>Ajuste de zona segura en iPhone (Dynamic Island).</li>
+            <li>Hora editable manualmente en los momentos del día.</li>
+            <li>Fuente Inter en los números grandes.</li>
+            <li>Sentimientos ampliados de 0 a 10.</li>
+            <li>Selección múltiple de clima.</li>
+          </ul>
+        </div>
+        <div class="changelog-item">
+          <span class="changelog-v">v0.1 beta</span>
+          <ul>
+            <li>Primera versión con pantallas separadas (Inicio / Estadísticas / Copia de seguridad).</li>
+            <li>Sentimientos, clima, momentos del día y calendario.</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -888,6 +950,9 @@ async function saveEntry(){
     allEntries[selectedDate] = entry;
     document.getElementById('saveMsg').textContent = '✓ Guardado';
     updateDialAvg();
+    document.getElementById('feelingsList').style.display='none';
+    document.getElementById('feelingsToggleArrow').textContent='▾';
+    document.getElementById('feelingsToggleLabel').textContent='Toca para puntuar';
     setTimeout(()=>{ document.getElementById('saveMsg').textContent=''; }, 2200);
   }catch(e){
     document.getElementById('saveMsg').textContent = 'Error al guardar';
@@ -994,7 +1059,7 @@ function renderWeatherChart(dates){
   });
 }
 function renderSleepChart(dates){
-  const labelsMap = {bueno:'🟢 Bueno', regular:'🟠 Regular', malo:'🔴 Malo'};
+  const labelsMap = {bueno:'🟢 BIEN', regular:'🟠 REGULAR', malo:'🔴 MAL'};
   const sum = {}, cnt = {};
   dates.forEach(d=>{
     const s = allEntries[d].sleep;
