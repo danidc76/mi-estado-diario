@@ -276,7 +276,7 @@
     <div class="top">
       <button class="back-btn" id="returnToStatsBtn" style="display:none;">‹ Volver a estadísticas</button>
       <div class="eyebrow" style="display:none;"></div>
-      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v1.0 beta</span></div>
+      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v1.1 beta</span></div>
     </div>
 
     <div class="card">
@@ -1230,7 +1230,7 @@ function renderHistory(dates){
 /* ---------- backup ---------- */
 function exportData(){
   try{
-    const payload = { entries: allEntries, exportedAt:new Date().toISOString(), version:2 };
+    const payload = { entries: allEntries, weights: allWeights, exportedAt:new Date().toISOString(), version:3 };
     const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1248,9 +1248,14 @@ function importData(file){
       if(!payload.entries) throw new Error('formato no reconocido');
       if(!confirm('Esto añadirá/actualizará tus registros con los del backup. ¿Continuar?')) return;
       for(const [date,entry] of Object.entries(payload.entries)) localStorage.setItem('entry:'+date, JSON.stringify(entry));
+      if(payload.weights){
+        for(const [date,val] of Object.entries(payload.weights)) localStorage.setItem('weight:'+date, String(val));
+      }
       await loadAllEntries();
+      await loadAllWeights();
       loadFormForDate(selectedDate);
       updateDialAvg();
+      updateWeightCurrentDisplay();
       document.getElementById('backupMsg').textContent='✓ Datos importados';
       setTimeout(()=>{document.getElementById('backupMsg').textContent='';},2500);
     }catch(err){ document.getElementById('backupMsg').textContent='Archivo no válido'; console.error(err); }
