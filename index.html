@@ -100,6 +100,21 @@
   .mosaic-val{ font-family:'Inter'; font-weight:900; font-size:24px; line-height:1.1; }
   .mosaic-lbl{ font-size:10.5px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; }
 
+  .sleep-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
+  .sleep-btn{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px; padding:16px 8px; border-radius:14px; border:2px solid var(--line);
+    background:var(--card2); cursor:pointer; transition:all .15s;
+  }
+  .sleep-btn .sleep-emoji{ font-size:24px; }
+  .sleep-btn .sleep-lbl{ font-family:'Inter'; font-weight:800; font-size:11px; color:var(--muted); letter-spacing:0.5px; }
+  .sleep-btn.sel-bueno{ border-color:#6fcf45; background:rgba(111,207,69,0.12); }
+  .sleep-btn.sel-bueno .sleep-lbl{ color:#6fcf45; }
+  .sleep-btn.sel-regular{ border-color:#f5a623; background:rgba(245,166,35,0.12); }
+  .sleep-btn.sel-regular .sleep-lbl{ color:#f5a623; }
+  .sleep-btn.sel-malo{ border-color:#d62828; background:rgba(214,40,40,0.12); }
+  .sleep-btn.sel-malo .sleep-lbl{ color:#d62828; }
+
   .changelog{ display:flex; flex-direction:column; gap:11px; }
   .changelog-item{ font-size:12.5px; color:var(--muted); line-height:1.5; padding-bottom:11px; border-bottom:1px solid var(--line); }
   .changelog-item:last-child{ border-bottom:none; padding-bottom:0; }
@@ -276,32 +291,33 @@
     <div class="top">
       <button class="back-btn" id="returnToStatsBtn" style="display:none;">‹ Volver a estadísticas</button>
       <div class="eyebrow" style="display:none;"></div>
-      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v1.2 beta</span></div>
+      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v1.4 beta</span></div>
     </div>
 
-    <div class="card">
-      <div class="date-row">
+    <!-- Header compacto: fecha + stats en una sola tarjeta -->
+    <div class="card" style="padding:14px 16px;">
+      <div class="date-row" style="margin-bottom:12px;">
         <input type="date" id="datePicker" title="Elegir otro día para ver o editar">
         <span class="today-pill" id="goTodayBtn" title="Volver al día de hoy">Hoy</span>
       </div>
+      <div class="mosaic-grid" style="margin-bottom:0;">
+        <div class="mosaic-tile" title="Media de todas tus puntuaciones diarias">
+          <div class="mosaic-val" id="mosaicAvg">–</div>
+          <div class="mosaic-lbl">Media</div>
+        </div>
+        <div class="mosaic-tile" title="Tu último peso registrado">
+          <div class="mosaic-val" id="mosaicWeight">–</div>
+          <div class="mosaic-lbl">Último peso</div>
+        </div>
+      </div>
     </div>
 
-    <div class="mosaic-grid">
-      <div class="mosaic-tile" title="Media de todas tus puntuaciones diarias">
-        <div class="mosaic-val" id="mosaicAvg">–</div>
-        <div class="mosaic-lbl">Media puntuación</div>
-      </div>
-      <div class="mosaic-tile" title="Tu último peso registrado">
-        <div class="mosaic-val" id="mosaicWeight">–</div>
-        <div class="mosaic-lbl">Último peso</div>
-      </div>
-    </div>
-
+    <!-- Puntuación del día -->
     <div class="card score-card">
       <div class="dial-zone">
-        <div class="dial-num" id="scoreNum">7</div>
+        <div class="dial-num" id="scoreNum">–</div>
         <div class="dial-label">Puntuación del día (0-10) <span id="dialEmoji"></span></div>
-        <input type="range" min="0" max="10" value="7" id="scoreSlider" title="Desliza para puntuar el día">
+        <input type="range" min="0" max="10" value="5" id="scoreSlider" title="Desliza para puntuar el día">
         <div class="score-bar-track"><div class="score-bar-fill" id="scoreBarFill"></div></div>
       </div>
     </div>
@@ -315,15 +331,26 @@
       <div id="feelingsList" style="display:none;"></div>
     </div>
 
+    <!-- Sueño: full width con 3 botones grandes horizontales -->
     <div class="card">
       <h2>¿Cómo dormiste?</h2>
-      <div class="wp-rating-row">
-        <button class="wp-rating-btn" id="sleepBueno" data-sleep="bueno" title="Dormiste bien">🟢 BIEN</button>
-        <button class="wp-rating-btn" id="sleepRegular" data-sleep="regular" title="Sueño regular">🟠 REGULAR</button>
-        <button class="wp-rating-btn" id="sleepMalo" data-sleep="malo" title="Dormiste mal">🔴 MAL</button>
+      <div class="sleep-row">
+        <button class="sleep-btn" id="sleepBueno" data-sleep="bueno">
+          <span class="sleep-emoji">🟢</span>
+          <span class="sleep-lbl">BIEN</span>
+        </button>
+        <button class="sleep-btn" id="sleepRegular" data-sleep="regular">
+          <span class="sleep-emoji">🟠</span>
+          <span class="sleep-lbl">REGULAR</span>
+        </button>
+        <button class="sleep-btn" id="sleepMalo" data-sleep="malo">
+          <span class="sleep-emoji">🔴</span>
+          <span class="sleep-lbl">MAL</span>
+        </button>
       </div>
     </div>
 
+    <!-- Peso: tarjeta normal -->
     <div class="card">
       <h2>⚖️ Peso</h2>
       <button class="save-btn secondary" id="weightToggleBtn" title="Anotar tu peso de hoy">⚖️ Registrar peso de hoy</button>
@@ -787,7 +814,7 @@ function renderFeelingsSummary(){
 function renderSleepButtons(){
   ['bueno','regular','malo'].forEach(s=>{
     const btn = document.getElementById('sleep'+s.charAt(0).toUpperCase()+s.slice(1));
-    btn.className = 'wp-rating-btn' + (selectedSleep===s ? ' sel-'+s : '');
+    btn.className = 'sleep-btn' + (selectedSleep===s ? ' sel-'+s : '');
   });
 }
 function renderWeatherChips(){
@@ -897,7 +924,9 @@ function confirmWaypoint(){
 }
 
 /* ---------- dial / form ---------- */
+let sliderTouched = false;
 function updateDial(){
+  sliderTouched = true;
   const v = parseInt(document.getElementById('scoreSlider').value);
   const color = ragColor(v);
   document.getElementById('scoreNum').textContent = v;
@@ -920,8 +949,16 @@ function loadFormForDate(ds){
   const returnBtn = document.getElementById('returnToStatsBtn');
   returnBtn.style.display = returnToStatsTab ? 'block' : 'none';
   document.getElementById('weightPickerWrap').style.display='none';
+  sliderTouched = false;
   const entry = allEntries[ds];
+  const hasEntry = !!entry;
   document.getElementById('scoreSlider').value = entry ? entry.score : 5;
+  if(!hasEntry){
+    document.getElementById('scoreNum').textContent = '–';
+    document.getElementById('scoreNum').style.color = 'var(--muted)';
+    document.getElementById('dialEmoji').textContent = '';
+    document.getElementById('scoreBarFill').style.width = '0%';
+  }
   currentFeelings = entry ? Object.assign({}, entry.feelings||{}) : {};
   selectedWeather = entry ? (Array.isArray(entry.weather) ? entry.weather.slice() : (entry.weather ? [entry.weather] : [])) : [];
   selectedSleep = entry ? (entry.sleep||null) : null;
@@ -963,10 +1000,11 @@ async function saveEntry(){
     allEntries[selectedDate] = entry;
     document.getElementById('saveMsg').textContent = '✓ Guardado';
     updateDialAvg();
-    document.getElementById('feelingsList').style.display='none';
-    document.getElementById('feelingsToggleArrow').textContent='▾';
-    document.getElementById('feelingsToggleLabel').textContent='Toca para puntuar';
-    setTimeout(()=>{ document.getElementById('saveMsg').textContent=''; }, 2200);
+    updateWeightCurrentDisplay();
+    setTimeout(()=>{
+      document.getElementById('saveMsg').textContent='';
+      loadFormForDate(todayStr());
+    }, 1200);
   }catch(e){
     document.getElementById('saveMsg').textContent = 'Error al guardar';
     console.error(e);
@@ -1082,13 +1120,15 @@ function renderSleepChart(dates){
     cnt[s] = (cnt[s]||0) + 1;
   });
   const order = ['malo','regular','bueno'];
+  const fixedColors = {malo:'#d62828', regular:'#f5a623', bueno:'#6fcf45'};
   const labels = order.filter(s=>cnt[s]).map(s=>labelsMap[s]);
   const avgs = order.filter(s=>cnt[s]).map(s=> +(sum[s]/cnt[s]).toFixed(2));
+  const colors = order.filter(s=>cnt[s]).map(s=>fixedColors[s]);
   const ctx = document.getElementById('sleepChart');
   if(window._sleepChartInst) window._sleepChartInst.destroy();
   window._sleepChartInst = new Chart(ctx, {
     type:'bar',
-    data:{ labels, datasets:[{ data:avgs, backgroundColor:avgs.map(v=>ragColor(v)), borderRadius:8 }]},
+    data:{ labels, datasets:[{ data:avgs, backgroundColor:colors, borderRadius:8 }]},
     options:{ plugins:{legend:{display:false}},
       scales:{ y:{min:0,max:10, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#8d8fa0'}}, x:{grid:{display:false}, ticks:{color:'#8d8fa0'}} } }
   });
