@@ -291,7 +291,7 @@
     <div class="top">
       <button class="back-btn" id="returnToStatsBtn" style="display:none;">‹ Volver a estadísticas</button>
       <div class="eyebrow" style="display:none;"></div>
-      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v1.4 beta</span></div>
+      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v1.5 beta</span></div>
     </div>
 
     <!-- Header compacto: fecha + stats en una sola tarjeta -->
@@ -593,6 +593,9 @@
       </div>
       <input type="file" id="importFile" accept=".json">
       <div class="save-msg" id="backupMsg"></div>
+      <div style="margin-top:16px; text-align:center;">
+        <button id="clearAllBtn" style="background:none; border:none; color:var(--red); font-size:12px; text-decoration:underline; cursor:pointer;" title="Borrar absolutamente todos los registros y pesos guardados">Borrar todos los datos</button>
+      </div>
     </div>
   </div>
 
@@ -1003,7 +1006,24 @@ async function saveEntry(){
     updateWeightCurrentDisplay();
     setTimeout(()=>{
       document.getElementById('saveMsg').textContent='';
-      loadFormForDate(todayStr());
+      // Reset limpio — no recarga el registro guardado
+      sliderTouched = false;
+      currentFeelings = {}; selectedWeather = []; selectedSleep = null; currentWaypoints = [];
+      document.getElementById('scoreSlider').value = 5;
+      document.getElementById('scoreNum').textContent = '–';
+      document.getElementById('scoreNum').style.color = 'var(--muted)';
+      document.getElementById('dialEmoji').textContent = '';
+      document.getElementById('scoreBarFill').style.width = '0%';
+      document.getElementById('journalText').value = '';
+      renderFeelingsList();
+      renderFeelingsSummary();
+      renderWeatherChips();
+      renderSleepButtons();
+      resetWpForm();
+      document.getElementById('feelingsList').style.display='none';
+      document.getElementById('feelingsToggleArrow').textContent='▾';
+      document.getElementById('feelingsToggleLabel').textContent='Toca para puntuar';
+      window.scrollTo({top:0, behavior:'smooth'});
     }, 1200);
   }catch(e){
     document.getElementById('saveMsg').textContent = 'Error al guardar';
@@ -1243,6 +1263,19 @@ function renderCalendar(){
     }
     grid.appendChild(cell);
   }
+
+  // Swipe izquierda/derecha para cambiar de mes
+  const calPanel = document.querySelector('.panel[data-panel="cal"]');
+  calPanel.ontouchstart = null;
+  let touchStartX = 0;
+  calPanel.ontouchstart = (e)=>{ touchStartX = e.touches[0].clientX; };
+  calPanel.ontouchend = (e)=>{
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) < 50) return;
+    if(diff > 0){ calViewDate.setMonth(calViewDate.getMonth()+1); }
+    else { calViewDate.setMonth(calViewDate.getMonth()-1); }
+    renderCalendar();
+  };
 }
 
 function renderHistory(dates){
@@ -1269,6 +1302,23 @@ function renderHistory(dates){
 }
 
 /* ---------- backup ---------- */
+function clearAllData(){
+  if(!confirm('⚠️ Esto borrará TODOS tus registros y pesos. Esta acción no se puede deshacer.\n\n¿Estás seguro?')) return;
+  if(!confirm('¿Seguro seguro? Exporta primero un backup si quieres conservar algo.')) return;
+  const keysToDelete = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && (k.startsWith('entry:') || k.startsWith('weight:'))) keysToDelete.push(k);
+  }
+  keysToDelete.forEach(k=>localStorage.removeItem(k));
+  allEntries = {}; allWeights = {};
+  loadFormForDate(todayStr());
+  updateDialAvg();
+  updateWeightCurrentDisplay();
+  document.getElementById('backupMsg').textContent = '✓ Todos los datos borrados';
+  setTimeout(()=>{ document.getElementById('backupMsg').textContent=''; }, 2500);
+}
+
 function exportData(){
   try{
     const payload = { entries: allEntries, weights: allWeights, exportedAt:new Date().toISOString(), version:3 };
@@ -1332,6 +1382,7 @@ async function init(){
   document.getElementById('exportBtn').addEventListener('click', exportData);
   document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
   document.getElementById('importFile').addEventListener('change', (e)=>{ if(e.target.files[0]) importData(e.target.files[0]); });
+  document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
   document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=>showPanel(b.dataset.tab)));
 
   document.getElementById('addWaypointBtn').addEventListener('click', ()=>{
