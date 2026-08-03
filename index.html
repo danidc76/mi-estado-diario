@@ -296,7 +296,7 @@
         <button id="nextDayBtn" style="background:var(--card2); border:1px solid var(--line); color:var(--ink); border-radius:12px; padding:8px 16px; font-size:18px; cursor:pointer;">›</button>
       </div>
       <div class="eyebrow" style="display:none;"></div>
-      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v1.9 beta</span></div>
+      <div class="title-row" style="margin-top:4px;"><h1>Mi Estado Diario</h1><span class="version">v2.0 beta</span></div>
     </div>
 
     <!-- Header compacto: fecha + stats en una sola tarjeta -->
@@ -887,7 +887,7 @@ function renderWeatherChips(){
     chip.onclick = ()=>{
       if(selectedWeather.includes(w.code)) selectedWeather = selectedWeather.filter(c=>c!==w.code);
       else selectedWeather.push(w.code);
-      renderWeatherChips();
+      renderWeatherChips(); markDirty();
     };
     container.appendChild(chip);
   });
@@ -980,10 +980,47 @@ function confirmWaypoint(){
   document.getElementById('waypointList').style.display='flex';
   document.getElementById('wpToggleArrow').textContent='▴';
   renderWaypoints();
+  markDirty();
 }
 
 /* ---------- dial / form ---------- */
 let sliderTouched = false;
+let isDirty = false;
+
+function markDirty(){ isDirty = true; autosaveDraft(); }
+
+function autosaveDraft(){
+  try{
+    const score = parseInt(document.getElementById('scoreSlider').value);
+    const text = document.getElementById('journalText').value;
+    const draft = { score: sliderTouched ? score : null, feelings: currentFeelings, weather: selectedWeather, sleep: selectedSleep, waypoints: currentWaypoints, text, date: selectedDate };
+    localStorage.setItem('draft', JSON.stringify(draft));
+  }catch(e){}
+}
+
+function clearDraft(){ try{ localStorage.removeItem('draft'); }catch(e){} }
+
+function hasDraft(){
+  try{ return !!localStorage.getItem('draft'); }catch(e){ return false; }
+}
+
+function loadDraftIfExists(){
+  try{
+    const raw = localStorage.getItem('draft');
+    if(!raw) return false;
+    const draft = JSON.parse(raw);
+    if(draft.date !== selectedDate) return false;
+    if(draft.score !== null){ document.getElementById('scoreSlider').value = draft.score; sliderTouched = true; updateDial(); }
+    currentFeelings = draft.feelings || {};
+    selectedWeather = draft.weather || [];
+    selectedSleep = draft.sleep || null;
+    currentWaypoints = draft.waypoints || [];
+    document.getElementById('journalText').value = draft.text || '';
+    renderFeelingsList(); renderFeelingsSummary(); renderWeatherChips(); renderSleepButtons();
+    renderWaypoints();
+    return true;
+  }catch(e){ return false; }
+}
 function updateDial(){
   sliderTouched = true;
   const v = parseInt(document.getElementById('scoreSlider').value);
@@ -1014,6 +1051,7 @@ function loadFormForDate(ds){
     document.getElementById('dayNavLabel').textContent = dateObj.toLocaleDateString('es-ES',{weekday:'short', day:'numeric', month:'short'});
   }
   document.getElementById('weightPickerWrap').style.display='none';
+  isDirty = false;
   sliderTouched = false;
   const entry = allEntries[ds];
   const hasEntry = !!entry;
@@ -1041,6 +1079,12 @@ function loadFormForDate(ds){
   document.getElementById('waypointList').style.display='none';
   document.getElementById('wpToggleArrow').textContent='▾';
   renderWaypoints();
+  // Si hay borrador para este día, cargarlo
+  if(loadDraftIfExists()){
+    isDirty = true;
+    document.getElementById('saveMsg').textContent = '⚠️ Borrador recuperado';
+    setTimeout(()=>{ document.getElementById('saveMsg').textContent=''; }, 2500);
+  }
 }
 
 async function deleteEntry(){
@@ -1063,6 +1107,8 @@ async function saveEntry(){
   try{
     localStorage.setItem('entry:'+selectedDate, JSON.stringify(entry));
     allEntries[selectedDate] = entry;
+    clearDraft();
+    isDirty = false;
     document.getElementById('saveMsg').textContent = '✓ Guardado';
     updateDialAvg();
     updateWeightCurrentDisplay();
@@ -1450,7 +1496,8 @@ function importData(file){
 /* ---------- init ---------- */
 async function init(){
   document.getElementById('datePicker').max = todayStr();
-  document.getElementById('scoreSlider').addEventListener('input', updateDial);
+  document.getElementById('scoreSlider').addEventListener('input', ()=>{ updateDial(); markDirty(); });
+  document.getElementById('journalText').addEventListener('input', markDirty);
   document.getElementById('saveBtn').addEventListener('click', saveEntry);
   document.getElementById('deleteBtn').addEventListener('click', deleteEntry);
   document.getElementById('goStatsBtn').addEventListener('click', ()=>showView('stats'));
@@ -1474,6 +1521,13 @@ async function init(){
 
   // Navegación día anterior/siguiente
   function goDay(delta){
+    if(isDirty){
+      if(!confirm('Tienes cambios sin guardar en este día. ¿Salir sin guardar?')){
+        return;
+      }
+      clearDraft();
+      isDirty = false;
+    }
     const parts = selectedDate.split('-');
     const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
     d.setDate(d.getDate()+delta);
@@ -1545,7 +1599,7 @@ async function init(){
   ['bueno','regular','malo'].forEach(s=>{
     document.getElementById('sleep'+s.charAt(0).toUpperCase()+s.slice(1)).addEventListener('click', ()=>{
       selectedSleep = (selectedSleep===s) ? null : s;
-      renderSleepButtons();
+      renderSleepButtons(); markDirty();
     });
   });
   document.getElementById('feelingsToggleBtn').addEventListener('click', ()=>{
